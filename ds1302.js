@@ -1,4 +1,4 @@
-     var rpio = require('rpio');   //ok
+     var rpio = require('rpio');   //ok to git
 
 
 //class DS1302:
@@ -19,7 +19,7 @@
                 rpio.open(_clk_pin, rpio.OUTPUT,  rpio.LOW)
 		rpio.open(_ce_pin, rpio.OUTPUT, rpio.LOW)
                 
-		rpio.pud(_data_pin, rpio.PULL_UP);
+		rpio.pud(_data_pin, rpio.PULL_DOWN);
 
 
         // turn off WP (write protect)
@@ -34,6 +34,7 @@
         _w_byte(0x00)
         _end_tx()
 
+// write_datetime()  // sudah di setting
 
 var k=0;
 while( k==0) {
@@ -151,9 +152,12 @@ rpio.msleep(900);
         // write data bytes
      //   for (var i = 0; i = min(len(byte_a)); 31) { //=======================================================?
                 
-       //     _w_byte(ord(byte_a[i:i + 1])) //============================================================= blank?
-        // end of message
-        _end_tx()
+       //     _w_byte(ord(byte_a[i:i + 1])) //====================================
+
+
+
+
+  _end_tx()
 
     }
 
@@ -189,10 +193,11 @@ rpio.msleep(900);
         var minute = ((byte_l[1] & 0x70) >> 4) * 10 + (byte_l[1] & 0x0f)
         var hour = ((byte_l[2] & 0x30) >> 4) * 10 + (byte_l[2] & 0x0f)
         var day = ((byte_l[3] & 0x30) >> 4) * 10 + (byte_l[3] & 0x0f)
-//        var month = ((byte_l[4] & 0x10) >> 4) * 10 + (byte_l[4] & 0x0f)
+   var weekday = ((byte_l[4] & 0x10) >> 4) * 10 + (byte_l[4] & 0x0f)
         var month = ((byte_l[5] & 0x10) >> 4) * 10 + (byte_l[5] & 0x0f)
-
         var year = ((byte_l[6] & 0xf0) >> 4) * 10 + (byte_l[6] & 0x0f) + 2000
+      
+
         // return datetime value
         //return datetime.datetime(year, month, day, hour, minute, second) // ============================== datetime ??
 
@@ -200,7 +205,8 @@ console.log("isi ds 1302 second = " + second)
 console.log("isi ds 1302 minute = " + minute)
 console.log("isi ds 1302 hour   = " + hour)
 console.log("isi ds 1302 day    = " + day)
-console.log("isi ds 1302 month  = " + month)
+console.log("isi ds 1302 month  = " + weekday)
+console.log("isi ds 1302 weekday  = " + month)
 console.log("isi ds 1302 year   = " + year)
     }
      
@@ -212,29 +218,29 @@ console.log("isi ds 1302 year   = " + year)
         */
    // format message ===================================================================== dt ???
        var  byte_l = [0] * 9
-        byte_l[0] = dt.second // 10) << 4 | dt.second % 10
-        byte_l[1] = dt.minute // 10) << 4 | dt.minute % 10
-        byte_l[2] = dt.hour // 10) << 4 | dt.hour % 10
-        byte_l[3] = dt.day // 10) << 4 | dt.day % 10
-        byte_l[4] = dt.month // 10) << 4 | dt.month % 10
-        byte_l[5] = dt.weekday() // 10) << 4 | dt.weekday() % 10
-        byte_l[6] = (dt.year-2000) // 10) << 4 | (dt.year-2000) % 10
-        // start message
+       
         _start_tx()
-        // write clock burst
         _w_byte(0xbe)
-        // write all data
-        for(i=0; i=byte_l; i++){
-            _w_byte(byte)
-        }
-            // end of message
+       
+            _w_byte(0x00) //second
+            _w_byte(0x26) // minute
+            _w_byte(0x20) // hour
+           // _w_byte(0x25) // day
+            //_w_byte(0x11) // month
+           // _w_byte(0x07) // weekday
+            //_w_byte(0x18) // year
+
+       
         _end_tx()
     }
 
     //@staticmethod //============================?
     function close(){
 
+    rpio.close(_data_pin);
+    rpio.close(_clk_pin);
     rpio.close(_ce_pin);
+
         /* """
         Clean all GPIOs.
         """
